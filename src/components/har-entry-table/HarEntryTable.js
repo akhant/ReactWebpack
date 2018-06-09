@@ -76,6 +76,7 @@ export default class HarEntryTable extends React.Component {
           header={this._renderHeader.bind(this)}
           cell={this._renderTimeColumn.bind(this)}
           width={this.state.columnWidths.time}
+          header={this._renderHeader.bind(this)}
           minWidth={200}
           isResizable={true}
         />
@@ -119,7 +120,7 @@ export default class HarEntryTable extends React.Component {
   }
 
   _renderUrlColumn(cellData) {
-    console.log(this.props.entries[cellData.rowIndex].request.url);
+   /*  console.log(this.props.entries[cellData.rowIndex].request.url); */
     /* <FileType url={rowData.request.url} type={rowData.type} />; */
     return <span>{this.props.entries[cellData.rowIndex].request.url}</span>;
   }
@@ -151,28 +152,29 @@ export default class HarEntryTable extends React.Component {
   //              Table Sorting
   //-----------------------------------------
   _renderHeader(cellData) {
-    /* var dir = this.state.sortDirection[dataKey],
+     var dir = this.state.sortDirection[cellData.columnKey],
       classMap = {
         asc: "glyphicon glyphicon-sort-by-attributes",
         desc: "glyphicon glyphicon-sort-by-attributes-alt"
       },
-      sortClass = dir ? classMap[dir] : ""; */
+      sortClass = dir ? classMap[dir] : ""; 
 
-    /* <div
-        className="text-primary sortable"
-        onClick={this._columnClicked.bind(this, dataKey)}
-      >
-        <strong>{label}</strong>
-        &nbsp;
-        <i className={sortClass} />
-      </div> */
+       
 
-    return <span>{cellData.columnKey}</span>;
+    return ( <div className="text-primary sortable"
+    onClick={this._columnClicked.bind(this, cellData.columnKey)}
+    >
+      <span>{cellData.columnKey}</span>
+      &nbsp;
+      <i className={sortClass} />
+    </div>  
+
+    );
   }
 
-  _columnClicked(dataKey) {
+  _columnClicked(columnKey) {
     var sortDirections = this.state.sortDirection;
-    var dir = sortDirections[dataKey];
+    var dir = sortDirections[columnKey];
 
     if (dir === null) {
       dir = "asc";
@@ -187,10 +189,10 @@ export default class HarEntryTable extends React.Component {
       sortDirections[x] = null;
     });
 
-    sortDirections[dataKey] = dir;
+    sortDirections[columnKey] = dir;
 
     if (this.props.onColumnSort) {
-      this.props.onColumnSort(dataKey, dir);
+      this.props.onColumnSort(columnKey, dir);
     }
   }
 

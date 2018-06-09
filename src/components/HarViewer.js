@@ -33,7 +33,9 @@ export default class HarViewer extends Component {
   _initialState(){
     return {
       activeHar: null,
-      entries: []
+      entries: [],
+      sortKey: null,
+      sortDirection: null
     }
   }
 
@@ -74,13 +76,14 @@ export default class HarViewer extends Component {
     
     let pages = harParser.parse(har);
     let currentPage = pages[0];
-    let entries = currentPage.entries
+    let entries = this._sortEntiesByKey(this.state.sortKey,this.state.sortDirection, currentPage.entries)
     
  return (
   <Grid fluid>
   <Row>
     <Col sm={8} smOffset={2}>
-      <HarEntryTable entries={entries} />
+      <HarEntryTable entries={entries}
+      onColumnSort={this._onColumnSort.bind(this)} />
     </Col>
   </Row>
 </Grid>
@@ -143,6 +146,35 @@ export default class HarViewer extends Component {
     columnWidths[columnKey] = newColumnWidth;
     this.setState({ columnWidths: columnWidths, isColumnResizing: false });
   } */
+
+  //sorting
+
+  _onColumnSort(columnKey, direction) {
+    this.setState({sortKey: columnKey, sortDirection: direction})
+  }
+
+  _sortEntiesByKey(sortKey, sortDirection,entries) {
+    if (_.isEmpty(sortKey) || _.isEmpty(sortDirection)) return entries;
+
+    let keyMap = {
+      url: 'request.url',
+      time: 'time.start'
+    }
+
+    let getValue = function(entry){
+      let key = keyMap[sortKey] || sortKey
+      return _.get(entry, key)
+    }
+
+    let sorted = _.sortBy(entries, getValue)
+    
+    if (sortDirection === 'desc'){
+      sorted.reverse()
+    }
+
+    return sorted;
+  }
+    
 
   _sampleChanged() {
     let selection = ReactDOM.findDOMNode(this.refs.selector).value
