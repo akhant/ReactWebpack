@@ -38,11 +38,11 @@ module.exports = {
                   ],
                 
             },
-            {
-                test: /\.(json)$/,
+            /* {
+                test: /\.json$/,
                 exclude: /node_modules/,
                 loader: 'json-loader'
-            },
+            }, */
             {
                 test: /\.(svg|ttf|woff|woff2|eot)(\?v=\d+\.\d\.\d+)?$/,
                 

@@ -1,148 +1,200 @@
-import('fixed-data-table-2/dist/fixed-data-table.css')
+import("fixed-data-table-2/dist/fixed-data-table.css");
 
-import React, { Component } from 'react'
-import ReactDOM from 'react-dom'
-import _ from 'lodash'
-import {Grid, Row,Col,PageHeader,Button,ButtonGroup, FormControl} from 'react-bootstrap'
-import {Table,Column,Cell} from 'fixed-data-table-2'
-import mimeTypes from '../core/mimeTypes'
-const GutterWidth = 30
+import React, { Component } from "react";
+import ReactDOM from "react-dom";
+import _ from "lodash";
+import {Grid, Row,Col,PageHeader,Button,ButtonGroup, FormControl, Alert} from 'react-bootstrap'
+import mimeTypes from "../core/mime-types";
+import HarEntryTable from "./har-entry-table/HarEntryTable";
+import harParser from '../core/har-parser'
+
+const GutterWidth = 30;
+let samples = [
+  {
+      id: 'so',
+      har: require('../store/sample-hars/stackoverflow.com.json'),
+      label: 'Stack Overflow'
+  },
+  {
+      id: 'nyt',
+      har: require('../store/sample-hars/www.nytimes.com.json'),
+      label: 'New York Times'
+  },
+  {
+      id: 'react',
+      har: require('../store/sample-hars/facebook.github.io.json'),
+      label: 'Facebook React'
+  }
+];
 
 export default class HarViewer extends Component {
-  state= {
-    isColumnResizing: false,
-    columnWidths: {
-      url: 500,
-      size: 100,
-      time: 200
-    },
-    tableWidth: 1000,
-    tableHeight: 500
+  state = this._initialState()
+
+  _initialState(){
+    return {
+      activeHar: null,
+      entries: []
+    }
+  }
+
+  render() {
+    let content = this.state.activeHar
+    ? this._renderViewer(this.state.activeHar)
+    : this._renderEmptyViewer()
+
+     let entries = []
+
+
+    return (
+      <div>
+        {this._renderHeader()}
+        {content}
+      </div>
+      
+    );
   }
 
 
-  render() {
+  _renderEmptyViewer(){
+    return (
+      <Grid fluid>
+      <Row>
+        <Col sm={12}>
+        <p></p>
+        <Alert bsStyle="warning">
+          <strong>No Har loaded</strong>
+        </Alert>
+          
+        </Col>
+      </Row>
+    </Grid>
+     )
+  }
+  _renderViewer(har){
+    
+    let pages = harParser.parse(har);
+    let currentPage = pages[0];
+    let entries = currentPage.entries
+    
+ return (
+  <Grid fluid>
+  <Row>
+    <Col sm={8} smOffset={2}>
+      <HarEntryTable entries={entries} />
+    </Col>
+  </Row>
+</Grid>
+ )
+  }
+
+  _renderHeader() {
     let buttons = _.map(_.keys(mimeTypes.types), x => {
-      return this._createButton(x, mimeTypes.types[x].label)
+      return this._createButton(x, mimeTypes.types[x].label);
+    });
+    let options = _.map(samples, s => {
+      
+      return (<option key={s.id } value={s.id}>{s.label}</option>)
     })
     return (
-      <Grid> 
+      <Grid>
         <Row>
           <Col sm={12}>
             <PageHeader> Har Viewer</PageHeader>
           </Col>
           <Col sm={3} smOffset={9}>
             <div>
-              <label  className="control-label"></label>
-              <select onChange={this._sampleShanged.bind(this)} className="form-control">
-                <option value=""> ---</option>
+              <label className="control-label" />
+              <select
+                ref="selector"
+                onChange={this._sampleChanged.bind(this)}
+                className="form-control"
+              >
+              <option value=""> --- </option>
+                {options}
               </select>
             </div>
           </Col>
         </Row>
         <Row>
-          <Col sm={8} >
+          <Col sm={8}>
             <ButtonGroup bsSize="small">
-              {this._createButton('all', 'All')}
+              {this._createButton("all", "All")}
               {buttons}
             </ButtonGroup>
           </Col>
-          <Col sm={4} >
-            <FormControl type="search"
+          <Col sm={4}>
+            <FormControl
+              type="search"
               placeholder="Search Url"
               bsSize="small"
               onChange={this._filterTextChanged.bind(this)}
-              ref="filterText" 
-              />
-          </Col> 
-        </Row>
-        <Row>
-          <Col sm={12}>
-            <Table 
-              ref="entriesTable"
-              rowsCount={this.props.entries.length} 
-              width={this.state.tableWidth}
-              headerHeight={30}
-              height={this.state.tableHeight}
-              rowHeight={30}
-              rowGetter={this._getEntry.bind(this)}
-              isColumnResizing={this.state.isColumnResizing}
-              onColumnResizeEndCallback={this._onColumnResized.bind(this)}
-            >
-              <Column 
-                columnKey='url'
-                width={this.state.columnWidths.url}
-                isResizable={true}
-                header='Url' />
-                <Column 
-                columnKey='size'
-                width={this.state.columnWidths.size}
-                isResizable={true}
-                header='Size' />
-                <Column 
-                columnKey='time'
-                width={this.state.columnWidths.time}
-                minWidth={200}
-                isResizable={true}
-                header='TimeLine' />
-            </Table>
+              ref="filterText"
+            />
           </Col>
         </Row>
       </Grid>
-    )
+    );
   }
-
-  _getEntry(index){
-    return this.props.entries[index]
-  }
-  _onColumnResized(newColumnWidth, columnKey){
-    
+  /* _getEntry(index) {
+    return this.props.entries[index];
+  } */
+  /* _onColumnResized(newColumnWidth, columnKey) {
     let columnWidths = this.state.columnWidths;
     columnWidths[columnKey] = newColumnWidth;
-    this.setState({columnWidths: columnWidths, isColumnResizing: false})
+    this.setState({ columnWidths: columnWidths, isColumnResizing: false });
+  } */
+
+  _sampleChanged() {
+    let selection = ReactDOM.findDOMNode(this.refs.selector).value
+    let har = selection
+      ? _.find(samples, s => s.id === selection).har
+      : null
+
+      if (har) {
+        this.setState({activeHar: har})
+      } else {
+        this.setState(this._initialState())
+      }
   }
 
-  _sampleShanged(){
+ /*  componentDidMount() {
+    window.addEventListener(
+      "resize",
+      _.debounce(this._onResize.bind(this), 50, {
+        length: true,
+        trailing: true
+      })
+    );
+    this._onResize();
+  } */
 
-  }
-
-  componentDidMount(){
-    window.addEventListener('resize', _.debounce(this._onResize.bind(this), 50, {length: true, trailing: true}))
-    this._onResize()
-  }
-
-  _onResize(){
-    let parent = ReactDOM.findDOMNode(this.refs.entriesTable).parentNode
+  /* _onResize() {
+    let parent = ReactDOM.findDOMNode(this.refs.entriesTable).parentNode;
 
     this.setState({
       tableWidth: parent.clientWidth - GutterWidth,
-      tableHeight: document.body.clientHeight - parent.offsetTop - GutterWidth*0.5
-    })
-  }
-  _createButton(type, label){
-    let handler = this._filterRequested.bind(this, type)
+      tableHeight:
+        document.body.clientHeight - parent.offsetTop - GutterWidth * 0.5
+    });
+  } */
+  _createButton(type, label) {
+    let handler = this._filterRequested.bind(this, type);
     return (
-      <Button key = {type}
-      bsStyle="primary"
-      active= {this.state.type === type}
-      onClick = {handler} >
-      {label}
+      <Button
+        key={type}
+        bsStyle="primary"
+        active={this.state.type === type}
+        onClick={handler}
+      >
+        {label}
       </Button>
-    )
+    );
   }
-  _filterRequested(type, event){
+  _filterRequested(type, event) {}
 
-  }
-
-  _filterTextChanged(){
-
-  }
-
-
+  _filterTextChanged() {}
 }
 
-HarViewer.defaultProps = {
+/* HarViewer.defaultProps = {
   entries: []
-}
-
-
+}; */
