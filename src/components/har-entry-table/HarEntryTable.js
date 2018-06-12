@@ -10,6 +10,7 @@ import FileType from "../file-type/FileType.jsx";
 import formatter from "../../core/formatter";
 import { OverlayTrigger, Popover, Tooltip, Button } from "react-bootstrap";
 import PropTypes from "prop-types";
+import {scaleLinear} from 'd3-scale'
 
 const GutterWidth = 30;
 
@@ -37,14 +38,6 @@ export default class HarEntryTable extends React.Component {
 
   render() {
     return (
-      /*  <Table>
-                <Column 
-                dataKey="1"
-                cellRenderer={this.fakeRenderer.bind(this)}
-                
-                /> 
-            </Table> */
-
       <Table
         rowsCount={this.props.entries.length}
         width={this.state.tableWidth}
@@ -76,35 +69,13 @@ export default class HarEntryTable extends React.Component {
           header={this._renderHeader.bind(this)}
           cell={this._renderTimeColumn.bind(this)}
           width={this.state.columnWidths.time}
-          header={this._renderHeader.bind(this)}
+          
           minWidth={200}
           isResizable={true}
         />
       </Table>
     );
   }
-
-/*   _getRowClasses(index) {
-    var classname = index === this.state.highlightRow ? "active" : "";
-
-    return classname;
-  }
-
-  _readKey(key, entry) {
-    console.log("readKey");
-    var keyMap = {
-      url: "request.url",
-      time: "time.start"
-    };
-
-    key = keyMap[key] || key;
-    return _.get(entry, key);
-  }
-
-  _getEntry(index) {
-    console.log("getEntry");
-    return this.props.entries[index];
-  } */
 
   _onColumnResized(newColumnWidth, dataKey) {
     var columnWidths = this.state.columnWidths;
@@ -120,55 +91,60 @@ export default class HarEntryTable extends React.Component {
   }
 
   _renderUrlColumn(cellData) {
-   /*  console.log(this.props.entries[cellData.rowIndex].request.url); */
-    /* <FileType url={rowData.request.url} type={rowData.type} />; */
     return <span>{this.props.entries[cellData.rowIndex].request.url}</span>;
   }
 
   _renderTimeColumn(cellData) {
-    return (
-      <span>
-        {this.props.entries[cellData.rowIndex][cellData.columnKey].total}
-      </span>
-    );
-
-    /*  var start = rowData.time.start,
-      total = rowData.time.total,
-      pgTimings = this.props.page.pageTimings;
-
+    console.log(this.props.entries[cellData.rowIndex][cellData.columnKey])
+    let start = this.props.entries[cellData.rowIndex][cellData.columnKey].start;
+    let total = this.props.entries[cellData.rowIndex][cellData.columnKey].total;
+    let pgTimings = this.props.page.pageTimings;
+    let scale = this._prepareScale(this.props.entries, this.props.page);
     return (
       <TimeBar
-        scale={this.props.timeScale}
+        scale={scale}
         start={start}
         total={total}
-        timings={rowData.time.details}
+        timings={this.props.entries[cellData.rowIndex][cellData.columnKey].details}
         domContentLoad={pgTimings.onContentLoad}
         pageLoad={pgTimings.onLoad}
       />
-    ); */
+    );
+  }
+
+  _prepareScale(entries, page) {
+    let startTime = 0,
+      lastEntry = _.last(entries),
+      endTime = lastEntry.time.start + lastEntry.time.total,
+      maxTime = Math.max(endTime, page.pageTimings.onLoad);
+      
+    let scale = scaleLinear()      
+      .domain([startTime, Math.ceil(maxTime)])
+      .range([0, 100]);
+    
+    return scale;
   }
 
   //-----------------------------------------
   //              Table Sorting
   //-----------------------------------------
   _renderHeader(cellData) {
-     var dir = this.state.sortDirection[cellData.columnKey],
+    var dir = this.state.sortDirection[cellData.columnKey],
       classMap = {
         asc: "glyphicon glyphicon-sort-by-attributes",
         desc: "glyphicon glyphicon-sort-by-attributes-alt"
       },
-      sortClass = dir ? classMap[dir] : ""; 
+      sortClass = dir ? classMap[dir] : "";
 
-       
-
-    return ( <div className="text-primary sortable"
-    onClick={this._columnClicked.bind(this, cellData.columnKey)}
-    >
-      <span>{cellData.columnKey}</span>
-      &nbsp;
-      <i className={sortClass} />
-    </div>  
-
+    return (
+      <div
+        className="text-primary sortable"
+        onClick={this._columnClicked.bind(this, cellData.columnKey)}
+      >
+        <span>{cellData.columnKey}</span>
+        &nbsp;
+        <i className={sortClass} />
+      </div>
     );
   }
 

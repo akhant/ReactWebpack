@@ -17,10 +17,9 @@ import mimeTypes from "../core/mime-types";
 import HarEntryTable from "./har-entry-table/HarEntryTable";
 import harParser from "../core/har-parser";
 import FilterBar from "./FilterBar";
-import SampleSelector from './SampleSelector'
-import samples from '../core/samples'
+import SampleSelector from "./SampleSelector";
+import samples from "../core/samples";
 const GutterWidth = 30;
-
 
 export default class HarViewer extends Component {
   state = this._initialState();
@@ -31,7 +30,7 @@ export default class HarViewer extends Component {
       entries: [],
       sortKey: null,
       sortDirection: null,
-      filterType: 'all',
+      filterType: "all",
       filterText: null
     };
   }
@@ -51,6 +50,31 @@ export default class HarViewer extends Component {
     );
   }
 
+  //header
+  _renderHeader() {
+    return (
+      <Grid>
+        <Row>
+          <Col sm={12}>
+            <PageHeader> Har Viewer</PageHeader>
+          </Col>
+          <Col sm={3} smOffset={9}>
+            <SampleSelector onSampleChanged={this._sampleChanged.bind(this)} />
+          </Col>
+        </Row>
+      </Grid>
+    );
+  }
+
+  // for _renderHeader
+  _sampleChanged(har) {
+    if (har) {
+      this.setState({ activeHar: har });
+    } else {
+      this.setState(this._initialState());
+    }
+  }
+
   _renderEmptyViewer() {
     return (
       <Grid fluid>
@@ -65,30 +89,32 @@ export default class HarViewer extends Component {
       </Grid>
     );
   }
+
+  //table
   _renderViewer(har) {
     let pages = harParser.parse(har);
     let currentPage = pages[0];
     let filter = {
       type: this.state.filterType,
       text: this.state.filterText
-    }
-    let filteredEntries = this._filterEntries(filter, currentPage.entries)
+    };
+    let filteredEntries = this._filterEntries(filter, currentPage.entries);
     let entries = this._sortEntiesByKey(
       this.state.sortKey,
       this.state.sortDirection,
       filteredEntries
     );
-    
 
     return (
       <Grid fluid>
         <Row>
           <Col sm={8} smOffset={2}>
-            <FilterBar 
-            onChange={this._onFilterChanged.bind(this)}
-            onFilterTextChange={this._onFilterTextChanged.bind(this)}
-             />
+            <FilterBar
+              onChange={this._onFilterChanged.bind(this)}
+              onFilterTextChange={this._onFilterTextChanged.bind(this)}
+            />
             <HarEntryTable
+              page={currentPage}
               entries={entries}
               onColumnSort={this._onColumnSort.bind(this)}
             />
@@ -98,60 +124,25 @@ export default class HarViewer extends Component {
     );
   }
 
-  _renderHeader() {
-    
-    return (
-      <Grid>
-        <Row>
-          <Col sm={12}>
-            <PageHeader> Har Viewer</PageHeader>
-          </Col>
-          <Col sm={3} smOffset={9}>
-            <SampleSelector
-            onSampleChanged={this._sampleChanged.bind(this)}
-            />
-          </Col>
-        </Row>
-      </Grid>
-    );
+  //for _renderViewer
+  _onFilterChanged(type) {
+    this.setState({
+      filterType: type
+    });
   }
-  _sampleChanged(har){
-    if(har){
-      this.setState({activeHar: har})
-    } else {
-      this.setState(this._initialState())
-    }
-  }
-
-  _onFilterChanged(type){
-     this.setState({
-       filterType: type
-     })
-  }
-  _onFilterTextChanged(text){
+  _onFilterTextChanged(text) {
     this.setState({
       filterText: text
-    })
+    });
   }
-  _filterEntries(filter, entries){
-    return _.filter(entries, function(x){
-      let matchesType = filter.type === 'all' || filter.type === x.type
-      let matchesText = _.includes(x.request.url, filter.text || '')
+  _filterEntries(filter, entries) {
+    return _.filter(entries, function(x) {
+      let matchesType = filter.type === "all" || filter.type === x.type;
+      let matchesText = _.includes(x.request.url, filter.text || "");
 
       return matchesType && matchesText;
-    })
+    });
   }
-
-  /* _getEntry(index) {
-    return this.props.entries[index];
-  } */
-  /* _onColumnResized(newColumnWidth, columnKey) {
-    let columnWidths = this.state.columnWidths;
-    columnWidths[columnKey] = newColumnWidth;
-    this.setState({ columnWidths: columnWidths, isColumnResizing: false });
-  } */
-
-  //sorting
 
   _onColumnSort(columnKey, direction) {
     this.setState({ sortKey: columnKey, sortDirection: direction });
@@ -180,45 +171,5 @@ export default class HarViewer extends Component {
   }
 
   
-
-  /*  componentDidMount() {
-    window.addEventListener(
-      "resize",
-      _.debounce(this._onResize.bind(this), 50, {
-        length: true,
-        trailing: true
-      })
-    );
-    this._onResize();
-  } */
-
-  /* _onResize() {
-    let parent = ReactDOM.findDOMNode(this.refs.entriesTable).parentNode;
-
-    this.setState({
-      tableWidth: parent.clientWidth - GutterWidth,
-      tableHeight:
-        document.body.clientHeight - parent.offsetTop - GutterWidth * 0.5
-    });
-  } */
-  _createButton(type, label) {
-    let handler = this._filterRequested.bind(this, type);
-    return (
-      <Button
-        key={type}
-        bsStyle="primary"
-        active={this.state.type === type}
-        onClick={handler}
-      >
-        {label}
-      </Button>
-    );
-  }
-  _filterRequested(type, event) {}
-
-  _filterTextChanged() {}
 }
 
-/* HarViewer.defaultProps = {
-  entries: []
-}; */
