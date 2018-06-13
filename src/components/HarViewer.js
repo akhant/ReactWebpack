@@ -19,6 +19,7 @@ import harParser from "../core/har-parser";
 import FilterBar from "./FilterBar";
 import SampleSelector from "./SampleSelector";
 import samples from "../core/samples";
+import TypePieChart from "./pie-chart/TypePieChart.jsx";
 const GutterWidth = 30;
 
 export default class HarViewer extends Component {
@@ -109,10 +110,16 @@ export default class HarViewer extends Component {
       <Grid fluid>
         <Row>
           <Col sm={8} smOffset={2}>
+            <TypePieChart entries={currentPage.entries} />
+          </Col>
+        </Row>
+        <Row>
+          <Col sm={8} smOffset={2}>
             <FilterBar
               onChange={this._onFilterChanged.bind(this)}
               onFilterTextChange={this._onFilterTextChanged.bind(this)}
             />
+
             <HarEntryTable
               page={currentPage}
               entries={entries}
@@ -169,7 +176,4 @@ export default class HarViewer extends Component {
 
     return sorted;
   }
-
-  
 }
-

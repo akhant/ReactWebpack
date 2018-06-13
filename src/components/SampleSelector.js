@@ -1,27 +1,27 @@
-import React, { Component } from 'react'
-import PropTypes from 'prop-types'
-import samples from '../core/samples'
-import ReactDOM from 'react-dom'
+import React, { Component } from "react";
+import PropTypes from "prop-types";
+import samples from "../core/samples";
+import ReactDOM from "react-dom";
 
 export default class componentName extends Component {
-    constructor(){
-        super()
-        this.state ={}
-    }
+  constructor() {
+    super();
+    this.state = {};
+  }
   static propTypes = {
     onSampleChanged: PropTypes.func
-  }
+  };
 
   render() {
     let options = _.map(samples, s => {
-        return (
-          <option key={s.id} value={s.id}>
-            {s.label}
-          </option>
-        );
-      });
+      return (
+        <option key={s.id} value={s.id}>
+          {s.label}
+        </option>
+      );
+    });
     return (
-        <div>
+      <div>
         <label className="control-label" />
         <select
           ref="selector"
@@ -32,16 +32,14 @@ export default class componentName extends Component {
           {options}
         </select>
       </div>
-    )
+    );
   }
   _sampleChanged() {
     let selection = ReactDOM.findDOMNode(this.refs.selector).value;
     let har = selection ? _.find(samples, s => s.id === selection).har : null;
 
     if (this.props.onSampleChanged) {
-        this.props.onSampleChanged(har)
-    } 
+      this.props.onSampleChanged(har);
+    }
   }
 }
-
-

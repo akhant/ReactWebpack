@@ -6,7 +6,6 @@ import { OverlayTrigger, Popover } from "react-bootstrap";
 import TimingDetails from "./TimingDetails.jsx";
 import PropTypes from "prop-types";
 
-
 export default class TimeBar extends React.Component {
   constructor() {
     super();
@@ -14,8 +13,6 @@ export default class TimeBar extends React.Component {
   }
 
   render() {
-
-    /* return (<span>{this.props.total}</span>) */
     var value = value => {
         return `${this.props.scale(value)}%`;
       },
@@ -62,6 +59,7 @@ export default class TimeBar extends React.Component {
 
     var overlay = (
       <Popover
+        id="popover-basic"
         title={`Timing Details, started at: ${formatter.time(
           this.props.start
         )}`}
@@ -85,8 +83,8 @@ export default class TimeBar extends React.Component {
           {barElements}
           <span className="timebar-label">{label}</span>
         </div>
-      </OverlayTrigger> 
-    ); 
+      </OverlayTrigger>
+    );
   }
 }
 

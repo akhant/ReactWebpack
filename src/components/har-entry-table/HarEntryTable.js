@@ -10,7 +10,7 @@ import FileType from "../file-type/FileType.jsx";
 import formatter from "../../core/formatter";
 import { OverlayTrigger, Popover, Tooltip, Button } from "react-bootstrap";
 import PropTypes from "prop-types";
-import {scaleLinear} from 'd3-scale'
+import { scaleLinear } from "d3-scale";
 
 const GutterWidth = 30;
 
@@ -44,8 +44,6 @@ export default class HarEntryTable extends React.Component {
         headerHeight={30}
         height={this.state.tableHeight}
         rowHeight={40}
-        /* rowGetter={this._getEntry.bind(this)}
-        rowClassNameGetter={this._getRowClasses.bind(this)} */
         isColumnResizing={this.state.isColumnResizing}
         onColumnResizeEndCallback={this._onColumnResized.bind(this)}
       >
@@ -69,7 +67,6 @@ export default class HarEntryTable extends React.Component {
           header={this._renderHeader.bind(this)}
           cell={this._renderTimeColumn.bind(this)}
           width={this.state.columnWidths.time}
-          
           minWidth={200}
           isResizable={true}
         />
@@ -95,7 +92,6 @@ export default class HarEntryTable extends React.Component {
   }
 
   _renderTimeColumn(cellData) {
-    console.log(this.props.entries[cellData.rowIndex][cellData.columnKey])
     let start = this.props.entries[cellData.rowIndex][cellData.columnKey].start;
     let total = this.props.entries[cellData.rowIndex][cellData.columnKey].total;
     let pgTimings = this.props.page.pageTimings;
@@ -105,7 +101,9 @@ export default class HarEntryTable extends React.Component {
         scale={scale}
         start={start}
         total={total}
-        timings={this.props.entries[cellData.rowIndex][cellData.columnKey].details}
+        timings={
+          this.props.entries[cellData.rowIndex][cellData.columnKey].details
+        }
         domContentLoad={pgTimings.onContentLoad}
         pageLoad={pgTimings.onLoad}
       />
@@ -117,11 +115,11 @@ export default class HarEntryTable extends React.Component {
       lastEntry = _.last(entries),
       endTime = lastEntry.time.start + lastEntry.time.total,
       maxTime = Math.max(endTime, page.pageTimings.onLoad);
-      
-    let scale = scaleLinear()      
+
+    let scale = scaleLinear()
       .domain([startTime, Math.ceil(maxTime)])
       .range([0, 100]);
-    
+
     return scale;
   }
 
